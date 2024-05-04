@@ -2,9 +2,8 @@
 
 namespace SwapiScraping.Models;
 
-public class Vehicle
+public class Vehicle : Model
 {
-	public int Id { get; set; }
 	public string Name { get; set; } = string.Empty;
 	public string Model { get; set; } = string.Empty;
 	public string Manufacturer { get; set; } = string.Empty;
@@ -16,12 +15,14 @@ public class Vehicle
 	public string CargoCapacity { get; set; } = string.Empty;
 	public string Consumables { get; set; } = string.Empty;
 	public string Class { get; set; } = string.Empty;
-	public IList<int> Movies { get; set; } = [];
+	public ICollection<Movie> Movies { get; set; } = [];
+	public ICollection<int> MoviesSwIds { get; set; } = [];
 
 	public static implicit operator Vehicle(SWVehicle swVehicle)
 	{
 		var vehicle = new Vehicle()
 		{
+			Id = Guid.NewGuid(),
 			Name = swVehicle.Name,
 			Model = swVehicle.Model,
 			Manufacturer = swVehicle.Manufacturer,
@@ -33,13 +34,18 @@ public class Vehicle
 			CargoCapacity = swVehicle.CargoCapacity,
 			Consumables = swVehicle.Consumables,
 			Class = swVehicle.VehicleClass,
-			Id = Helper.GetIdFromUrl(swVehicle.Url)
+			SwId = Helper.GetIdFromUrl(swVehicle.Url),
+			CreatedAt = DateTime.Now.ToUniversalTime(),
+			UpdatedAt = DateTime.Now.ToUniversalTime()
 		};
 
 		foreach (var film in swVehicle.Films)
 		{
-			vehicle.Movies.Add(Helper.GetIdFromUrl(film));
+			vehicle.MoviesSwIds.Add(Helper.GetIdFromUrl(film));
 		}
+
+		DateTime.SpecifyKind(vehicle.CreatedAt, DateTimeKind.Utc);
+		DateTime.SpecifyKind(vehicle.UpdatedAt, DateTimeKind.Utc);
 
 		return vehicle;
 	}

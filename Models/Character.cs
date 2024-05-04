@@ -2,9 +2,8 @@
 
 namespace SwapiScraping.Models;
 
-public class Character
+public class Character : Model
 {
-	public int Id { get; set; }
 	public string Name { get; set; } = string.Empty;
 	public string Height { get; set; } = string.Empty;
 	public string Weight { get; set; } = string.Empty;
@@ -13,13 +12,17 @@ public class Character
 	public string EyeColor { get; set; } = string.Empty;
 	public string BirthYear { get; set; } = string.Empty;
 	public string Gender { get; set; } = string.Empty;
-	public int Planet { get; set; }
-	public IList<int> Movies { get; set; } = [];
+	public Guid PlanetId { get; set; }
+	public Planet? Planet { get; set; }
+	public int PlanetSwId { get; set; }
+	public ICollection<Movie> Movies { get; set; } = [];
+	public ICollection<int> MoviesSwIds { get; set; } = [];
 
 	public static implicit operator Character(SWPeople people)
 	{
 		var character = new Character()
 		{
+			Id = Guid.NewGuid(),
 			Name = people.Name,
 			Height = people.Height,
 			Weight = people.Mass,
@@ -28,14 +31,19 @@ public class Character
 			EyeColor = people.EyeColor,
 			BirthYear = people.BirthYear,
 			Gender = people.Gender,
-			Planet = Helper.GetIdFromUrl(people.Homeworld),
-			Id = Helper.GetIdFromUrl(people.Url)
+			PlanetSwId = Helper.GetIdFromUrl(people.Homeworld),
+			SwId = Helper.GetIdFromUrl(people.Url),
+			CreatedAt = DateTime.Now.ToUniversalTime(),
+			UpdatedAt = DateTime.Now.ToUniversalTime()
 		};
 
 		foreach (var film in people.Films)
 		{
-			character.Movies.Add(Helper.GetIdFromUrl(film));
+			character.MoviesSwIds.Add(Helper.GetIdFromUrl(film));
 		}
+
+		DateTime.SpecifyKind(character.CreatedAt, DateTimeKind.Utc);
+		DateTime.SpecifyKind(character.UpdatedAt, DateTimeKind.Utc);
 
 		return character;
 	}

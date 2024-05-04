@@ -2,9 +2,8 @@
 
 namespace SwapiScraping.Models;
 
-public class Planet
+public class Planet : Model
 {
-	public int Id { get; set; }
 	public string Name { get; set; } = string.Empty;
 	public string RotationPeriod { get; set; } = string.Empty;
 	public string OrbitalPeriod { get; set; } = string.Empty;
@@ -14,13 +13,16 @@ public class Planet
 	public string Terrain { get; set; } = string.Empty;
 	public string SurfaceWater { get; set; } = string.Empty;
 	public string Population { get; set; } = string.Empty;
-	public IList<int> Characters { get; set; } = [];
-	public IList<int> Movies { get; set; } = [];
+	public ICollection<Character> Characters { get; set; } = [];
+	public ICollection<Movie> Movies { get; set; } = [];
+	public ICollection<int> CharactersSwIds { get; set; } = [];
+	public ICollection<int> MoviesSwIds { get; set; } = [];
 
 	public static implicit operator Planet(SWPlanet swPlanet)
 	{
 		var planet = new Planet()
 		{
+			Id = Guid.NewGuid(),
 			Name = swPlanet.Name,
 			RotationPeriod = swPlanet.RotationPeriod,
 			OrbitalPeriod = swPlanet.OrbitalPeriod,
@@ -30,18 +32,23 @@ public class Planet
 			Terrain = swPlanet.Terrain,
 			SurfaceWater = swPlanet.SurfaceWater,
 			Population = swPlanet.Population,
-			Id = Helper.GetIdFromUrl(swPlanet.Url)
+			SwId = Helper.GetIdFromUrl(swPlanet.Url),
+			CreatedAt = DateTime.Now.ToUniversalTime(),
+			UpdatedAt = DateTime.Now.ToUniversalTime()
 		};
 
 		foreach (var character in swPlanet.Residents)
 		{
-			planet.Characters.Add(Helper.GetIdFromUrl(character));
+			planet.CharactersSwIds.Add(Helper.GetIdFromUrl(character));
 		}
 
 		foreach (var film in swPlanet.Films)
 		{
-			planet.Movies.Add(Helper.GetIdFromUrl(film));
+			planet.MoviesSwIds.Add(Helper.GetIdFromUrl(film));
 		}
+
+		DateTime.SpecifyKind(planet.CreatedAt, DateTimeKind.Utc);
+		DateTime.SpecifyKind(planet.UpdatedAt, DateTimeKind.Utc);
 
 		return planet;
 	}
